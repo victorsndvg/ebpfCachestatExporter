@@ -15,14 +15,14 @@ Deployment scripts: https://github.com/victorsndvg/klearningstuff
 
 ## Based on:
 
-    - [Kube-prometheus](https://github.com/prometheus-operator/kube-prometheus)
-    - [node_exporter](https://github.com/prometheus/node_exporter)
-    - [ebp_exporter](https://github.com/cloudflare/ebpf_exporter)
-    - [prometheus_ebpf_example](https://github.com/bpftools/prometheus-ebpf-example)
+[Kube-prometheus](https://github.com/prometheus-operator/kube-prometheus)
+[node_exporter](https://github.com/prometheus/node_exporter)
+[ebp_exporter](https://github.com/cloudflare/ebpf_exporter)
+[prometheus_ebpf_example](https://github.com/bpftools/prometheus-ebpf-example)
     
 # References:
 
-    - [Brendan Gregg's - Linux Extended BPF (eBPF) Tracing tools](https://www.brendangregg.com/ebpf.html)
-    - [Brendan Gregg's Blog - Linux Page Cache Hit Ratio](https://www.brendangregg.com/blog/2014-12-31/linux-page-cache-hit-ratio.html)
+[Brendan Gregg's - Linux Extended BPF (eBPF) Tracing tools](https://www.brendangregg.com/ebpf.html)
+[Brendan Gregg's Blog - Linux Page Cache Hit Ratio](https://www.brendangregg.com/blog/2014-12-31/linux-page-cache-hit-ratio.html)
 
     
