@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/component: exporter
+    app.kubernetes.io/name: ebpf-exporter
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 1.3.1
+  name: ebpf-exporter
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: exporter
+      app.kubernetes.io/name: ebpf-exporter
+      app.kubernetes.io/part-of: kube-prometheus
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: ebpf-exporter
+      labels:
+        app.kubernetes.io/component: exporter
+        app.kubernetes.io/name: ebpf-exporter
+        app.kubernetes.io/part-of: kube-prometheus
+        app.kubernetes.io/version: 1.3.1
+    spec:
+      automountServiceAccountToken: true
+      containers:
+        - name: bpf-cachestat
+          imagePullPolicy: Always
+          image: docker.io/victorsndvg/ebpf_exporter:0.24.0
+          command: ["/root/go/bin/ebpf_exporter"]
+          args: ["--config.file=/go/ebpf_exporter/examples/cachestat.yaml"]
+          ports:
+            - containerPort: 9435
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: EXPORTER_BINARY
+              value: /root/go/bin/ebpf_exporter
+            - name: CONFIG_PATH
+              value: /go/ebpf_exporter/examples
+          securityContext:
+            privileged: true
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          volumeMounts:
+            - name: sys
+              mountPath: /sys
+              readOnly: true
+            - name: headers
+              mountPath: /usr/src
+              readOnly: true
+            - name: modules
+              mountPath: /lib/modules
+              readOnly: true
+            - name: bin
+              mountPath: /host/usr/bin
+              readOnly: true
+        - args:
+          - --logtostderr
+          - --secure-listen-address=[$(IP)]:9436
+          - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+          - --upstream=http://127.0.0.1:9435/
+          env:
+          - name: IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          image: quay.io/brancz/kube-rbac-proxy:v0.12.0
+          name: kube-rbac-proxy
+          ports:
+          - containerPort: 9436
+            hostPort: 9436
+            name: https
+          resources:
+            limits:
+              cpu: 20m
+              memory: 40Mi
+            requests:
+              cpu: 10m
+              memory: 20Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+      volumes:
+        - name: root
+          hostPath:
+            path: /
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: headers
+          hostPath:
+            path: /usr/src
+        - name: modules
+          hostPath:
+            path: /lib/modules
+        - name: bin
+          hostPath:
+            path: /usr/bin
